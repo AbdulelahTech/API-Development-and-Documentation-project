@@ -67,13 +67,13 @@ class TriviaTestCase(unittest.TestCase):
         question = Question.query.get(12)
         self.assertEqual(question, None)
 
-    def test_delete_questions_500(self):
+    def test_delete_questions_404(self):
         res = self.client().delete('/questions/3')
         body = res.get_json()
-        self.assertEqual(res.status_code, 500)
+        self.assertEqual(res.status_code, 404)
         self.assertFalse(body['success'])
-        self.assertEqual(body['error'], 500)
-        self.assertEqual(body['message'], 'Internal Server Error')
+        self.assertEqual(body['error'], 404)
+        self.assertEqual(body['message'], 'Not Found')
 
     # POST /questions
 
@@ -103,7 +103,7 @@ class TriviaTestCase(unittest.TestCase):
 
     def test_post_questions_200(self):
         res = self.client().post('/questions', json={
-            'searchTerm': 'this is a question'
+            'searchTerm': 'What boxer\'s original name is Cassius Clay?'
         })
         body = res.get_json()
         print(body)
@@ -133,12 +133,12 @@ class TriviaTestCase(unittest.TestCase):
         self.assertTrue(body['current_category'])
         self.assertTrue(body['total_questions'])
 
-    def test_get_questions_by_cate_500(self):
+    def test_get_questions_by_cate_404(self):
         res = self.client().get('/categories/0/questions')
         body = res.get_json()
         self.assertFalse(body['success'])
-        self.assertEqual(body['error'], 500)
-        self.assertEqual(body['message'], 'Internal Server Error')
+        self.assertEqual(body['error'], 404)
+        self.assertEqual(body['message'], 'Not Found')
 
     # POST /quizzes
 

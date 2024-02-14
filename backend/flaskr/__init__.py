@@ -31,7 +31,8 @@ def create_app(test_config=None):
     setup_db(app)
 
     """
-    @TODO: Set up CORS. Allow '*' for origins. Delete the sample route after completing the TODOs
+    @TODO: Set up CORS. Allow '*' for origins. Delete the sample route
+    after completing the TODOs
     """
     CORS(app, origins='*')
 
@@ -66,7 +67,7 @@ def create_app(test_config=None):
                         'categories': [c.type for c in categories]
                     }
                 ), 200
-        except:
+        except Exception:
             abort(500)
 
     """
@@ -78,7 +79,8 @@ def create_app(test_config=None):
 
     TEST: At this point, when you start the application
     you should see questions and categories generated,
-    ten questions per page and pagination at the bottom of the screen for three pages.
+    ten questions per page and pagination at the
+    bottom of the screen for three pages.
     Clicking on the page numbers should update the questions.
     """
     @app.route('/questions', methods=['GET'])
@@ -112,18 +114,24 @@ def create_app(test_config=None):
     @TODO:
     Create an endpoint to DELETE question using a question ID.
 
-    TEST: When you click the trash icon next to a question, the question will be removed.
-    This removal will persist in the database and when you refresh the page.
+    TEST: When you click the trash icon next to a question,
+    the question will be removed.This removal will
+    persist in the database and when you refresh the page.
     """
     @app.route('/questions/<int:quet_id>', methods=['DELETE'])
     def delQuestion(quet_id):
         try:
             deletedQuestion: Question = Question.query.get(quet_id)
-            deletedQuestion.delete()
-            return jsonify({
-                'success': True,
-                'question_id': deletedQuestion.id
-            })
+            if deletedQuestion is not None:
+                deletedQuestion.delete()
+                return jsonify({
+                    'success': True,
+                    'question_id': deletedQuestion.id
+                })
+            else:
+                abort(404)
+        except werkzeug.exceptions.NotFound:
+            abort(404)
         except Exception as e:
             print(e)
             abort(500)
@@ -134,30 +142,36 @@ def create_app(test_config=None):
     which will require the question and answer text,
     category, and difficulty score.
 
-    TEST: When you submit a question on the "Add" tab,
-    the form will clear and the question will appear at the end of the last page
+    TEST: When you submit a question on the "Add"tab,
+    the form will clear and the question will appear
+    at the end of the last page
     of the questions list in the "List" tab.
     """
     @app.route('/questions', methods=['POST'])
     def addQuestion():
         body = request.get_json()
-        if 'question' in body and body['question'] != '' and 'answer' in body and body['answer'] != '' and 'difficulty' in body and body['difficulty'] != '' and 'category' in body and body['category'] != '':
-            print(body['category'])
+        if 'question' in body and body['question'] != '' and 'answer' in body\
+            and body['answer'] != '' and 'difficulty' in body\
+                and body['difficulty'] != '' and 'category' in body\
+            and body['category'] != '':
             try:
                 newQuest = Question(
-                    body['question'], body['answer'], body['category'], body['difficulty'])
+                    body['question'],
+                    body['answer'],
+                    body['category'],
+                    body['difficulty'])
                 newQuest.insert()
                 return jsonify({
                     'success': True,
                     'question_id': newQuest.id
                 }), 201
-            except:
+            except Exception:
                 abort(500)
         elif 'searchTerm' in body and body['searchTerm'] != '':
             try:
                 formatedTerm = '%{}%'.format(body['searchTerm'])
                 searchedQuestions = Question.query.filter(
-                    Question.question.like(formatedTerm)).all()
+                    Question.question.ilike(formatedTerm)).all()
                 if len(searchedQuestions) == 0:
                     return abort(404)
                 else:
@@ -166,11 +180,10 @@ def create_app(test_config=None):
                         'questions': [q.format() for q in searchedQuestions],
                         'total_questions': len(searchedQuestions)
                     }), 200
-
             except werkzeug.exceptions.NotFound as he:
                 print(he)
                 abort(404)
-            except:
+            except Exception:
                 abort(500)
         else:
             abort(400)
@@ -201,8 +214,11 @@ def create_app(test_config=None):
         try:
             questions = Question.query.filter_by(category=category_id).all()
             selectedQuest = paginate_qustions(request, questions)
-            cate = Category.query.get(category_id).type
-        except:
+            cate = ''
+            if Category.query.get(category_id) is not None:
+                cate = Category.query.get(category_id).type
+        except Exception as e:
+            print(e)
             abort(500)
         if len(selectedQuest) == 0:
             abort(404)
@@ -229,18 +245,29 @@ def create_app(test_config=None):
     def getNextQuestion():
         try:
             body = request.get_json()
-            if 'previous_questions' in body and body['previous_questions'] != '':
+            if 'previous_questions' in body and \
+                    body['previous_questions'] != '':
                 if 'quiz_category' in body and body['quiz_category'] != '':
-                    print(int(body['quiz_category']['id']) + 1)
-                    nextQuest: Question = random.choice(Question.query.filter_by(
-                        category=int(body['quiz_category']['id']) + 1).filter(
-                        Question.question.not_like(body['previous_questions'])).all())
+                    term = '%{}%'.format(body['previous_questions'])
+                    nextQuest: Question = random.choice(
+                        Question.query.filter_by(
+                            category=int(body['quiz_category']['id']) + 1
+                        ).filter(
+                            Question.question.not_in(
+                                [term])
+                        ).all()
+                    )
                     return jsonify({
                         'question': nextQuest.format()
                     }), 200
                 else:
-                    nextQuest: Question = random.choice(Question.query.filter(
-                        Question.question.not_like(body['previous_questions'])).all())
+                    term = '%{}%'.format(body['previous_questions'])
+                    nextQuest: Question = random.choice(
+                        Question.query.filter(
+                            Question.question.not_in(
+                                [term])
+                        ).all()
+                    )
                     return jsonify({
                         'question': nextQuest.format()
                     }), 200
@@ -286,7 +313,8 @@ def create_app(test_config=None):
     def not_found(error):
         return jsonify(
             {
-                "success": False, "error": 500, "message": "Internal Server Error"
+                "success": False, "error": 500,
+                "message": "Internal Server Error"
             }
         ), 500
 

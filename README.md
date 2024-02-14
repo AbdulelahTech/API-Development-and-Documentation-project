@@ -166,3 +166,37 @@ This document descripe the endpoints provided by __Trivia App__ .
   "currentCategory": "Entertainment"
 }
 ```
+## Error Handling
+
+#### Error code 400
+```json
+{
+    "success": false, 
+    "error": 400, 
+    "message": "Bad Request"
+}
+```
+#### Error code 404
+```json
+{
+    "success": false, 
+    "error": 404, 
+    "message": "Not Found"
+}
+```
+#### Error code 422
+```json
+{
+    "success": false, 
+    "error": 422, 
+    "message": "Unprocessable"
+}
+```
+#### Error code 500
+```json
+{
+    "success": false, 
+    "error": 500, 
+    "message": "Internal Server Error"
+}
+```

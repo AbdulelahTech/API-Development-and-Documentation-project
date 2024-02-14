@@ -1,0 +1,2 @@
+SQLALCHEMY_DATABASE_URI = 'postgresql://localhost:5433/trivia'
+SQLALCHEMY_TRACK_MODIFICATIONS = False
